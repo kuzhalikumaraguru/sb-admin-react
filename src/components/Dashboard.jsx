@@ -1,93 +1,97 @@
-import React from "react";
-import Card from './Card';
+import React, { useEffect, useState } from "react";
+import Card from "./Card";
 import Button from "react-bootstrap/Button";
-import Table  from "react-bootstrap/Table";
+import Table from "react-bootstrap/Table";
 import { useNavigate } from "react-router-dom";
-function Dashboard({ user, setUser }) {
+import axios from "axios";
+import { API_URL } from "../App";
+import { Link } from "react-router-dom";
+
+function Dashboard() {
   let navigate = useNavigate();
-   let data = [
-     {
-       title: "EARNINGS (MONTHLY)",
-       value: "$45,000",
-       color: "primary",
-       icon: "fa-calendar",
-       isProgress: false,
-     },
-     {
-       title: "EARNINGS (ANNUAL)",
-       value: "$215,000",
-       color: "success",
-       icon: "fa-dollar-sign",
-       isProgress: false,
-     },
-     {
-       title: "TASKS",
-       value: "20",
-       color: "info",
-       icon: "fa-clipboard-list",
-       isProgress: true,
-     },
-     {
-       title: "PENDING REQUEST",
-       value: "18",
-       color: "warning",
-       icon: "fa-comments",
-       isProgress: false,
-     },
-  ];
-  let handleDelete = (id) => {
-    let index = 0;
-    for (let i = 0; i < user.length; i++){
-      if (user[i].id === id) {
-        index = i;
-        break;
+  let [user, setUser] = useState([]);
+  let handleDelete = async (id) => {
+    try {
+      let res = await axios.delete(`${API_URL}/${id}`);
+      if (res.status === 200) {
+        getUsersData();
       }
+    } catch (err) {
+      console.log(err);
     }
-    let dupUser = [...user];
-    dupUser.splice(index, 1);
-    setUser(dupUser);
-  }
+  };
+  const getUsersData = async () => {
+    try {
+      let res = await axios.get(API_URL);
+      if (res.status === 200) {
+        console.log(res.data);
+        setUser(res.data);
+      }
+    } catch (err) {}
+  };
+  useEffect(() => {
+    getUsersData();
+  }, []);
+
   return (
     <div id="content-wrapper" className="d-flex flex-column">
       <div id="content">
         <div className="container-fluid">
-          <div className="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
+          <div className="d-sm-flex align-items-center justify-content-around mb-4">
+            <h1 className="h3 mb-0 text-gray-800">User Details</h1>
+            <Link to="/add-user">
+              <span>Add User</span>
+            </Link>
           </div>
           <div className="row">
-            {data.map((e, i) => {
-              return <Card cardData={e} key={i} />;
-            })}
-            <Table striped bordered hover>
+            <Table striped bordered hover size="sm" responsive>
               <thead>
                 <tr>
                   <th>SL.No</th>
                   <th>Name</th>
+                  <th>Username</th>
                   <th>Email</th>
                   <th>Mobile</th>
-                  <th>Batch</th>
+                  <th>Company</th>
+                  <th>Address</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {
-                  user.map((e, i) => {
-                    return (
-                      <tr key={i}>
-                        <td>{i + 1}</td>
-                        <td>{e.name}</td>
-                        <td>{e.email}</td>
-                        <td>{e.mobile}</td>
-                        <td>{e.batch}</td>
-                        <td>
-                          <Button variant='primary' onClick={() => { navigate(`/edit-user/${e.id}`)}}>Edit</Button>
-                                        &nbsp;
-                            <Button variant='danger' onClick={()=>{handleDelete(e.id)}}>Delete</Button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                }
-               
+                {user.map((e, i) => {
+                  return (
+                    <tr key={i}>
+                      <td>{i + 1}</td>
+                      <td>{e.name}</td>
+                      <td>{e.username}</td>
+                      <td>{e.email}</td>
+                      <td>{e.phone}</td>
+                      <td>{e.company.name}</td>
+                      <td style={{ width: "5%" }}>
+                        {e.address.street}
+                      </td>
+                      <td>
+                        <span
+                          style={{ color: "green", cursor: "pointer" }}
+                          onClick={() => {
+                            navigate(`/edit-user/${e.id}`);
+                          }}
+                        >
+                          Edit
+                        </span>
+                        &nbsp;
+                        <span
+                          style={{ color: "red", cursor: "pointer" }}
+                          onClick={() => {
+                            handleDelete(e.id);
+                          }}
+                        >
+                          Delete
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
           </div>

@@ -1,39 +1,64 @@
 import React, { useEffect, useState } from 'react'
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom';
+import { API_URL } from "../App";
+import axios from 'axios';
 
-function EditUser({user,setUser}) {
+function EditUser() {
   let [name,setName] = useState("")
   let [email,setEmail] = useState("")
-  let [batch,setBatch] = useState("")
-  let [mobile, setMobile] = useState("")
+  let [username,setUserName] = useState("")
+  let [phone, setMobile] = useState("")
+  let [company, setCompany] = useState("");
+  let [address, setAddress] = useState("");
   let params = useParams();
   let navigate = useNavigate();
 
-  const findIndex = (id) => {
-    for (let i = 0; i < user.length; i++) {
-      if (id === user[i].id) return i;
+  let handleEdit = async () => {
+    let id = Number(params.id);
+    try {
+      let data = {
+        id,
+        name,
+        email,
+        username,
+        phone,
+        company: {
+          name : company
+        },
+        address: {
+          street: address
+        }
+      };
+      let res = await axios.put(`${API_URL}/${id}`, data);
+      console.log(res);
+      if (res.status === 200) {
+        navigate('/dashboard');
+      }
     }
-  };
-  let handleEdit = () => {
-    let id = Number(params.id);
-    let index = findIndex(id);
-    let editUser = [...user];
-    editUser.splice(index, 1, {
-      id,name,email,batch,mobile
-    })
-    setUser(editUser);
-    navigate('/dashboard')
-    
+    catch {
+
+    }
   }
-  let getData = () => {
+  const getData = async () => {
     let id = Number(params.id);
-    let index = findIndex(id);
-    setName(user[index].name);
-    setMobile(user[index].mobile);
-    setBatch(user[index].batch);
-    setEmail(user[index].email);
+    try {
+      let res = await axios.get(`${API_URL}/${id}`);
+      console.log(res);
+      if (res.status === 200) {
+         setName(res.data.name);
+         setEmail(res.data.email);
+         setUserName(res.data.username);
+         setMobile(res.data.phone);
+        setCompany(res.data.company.name);
+        setAddress(res.data.address.street);
+      }
+    }
+    catch (err) {
+      console.log(err, 'err');
+    }
+   
   }
 
   useEffect(() => {
@@ -52,8 +77,18 @@ function EditUser({user,setUser}) {
               <Form.Label>Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Name" value={name}
+                placeholder="Name"
+                value={name}
                 onChange={(e) => setName(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>User Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter the username"
+                value={username}
+                onChange={(e) => setUserName(e.target.value)}
               />
             </Form.Group>
 
@@ -61,7 +96,8 @@ function EditUser({user,setUser}) {
               <Form.Label>Email address</Form.Label>
               <Form.Control
                 type="email"
-                placeholder="Enter email" value={email}
+                placeholder="Enter email"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </Form.Group>
@@ -70,17 +106,29 @@ function EditUser({user,setUser}) {
               <Form.Label>Mobile</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Mobile" value={mobile}
+                placeholder="Mobile"
+                value={phone}
                 onChange={(e) => setMobile(e.target.value)}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Batch</Form.Label>
+              <Form.Label>Company</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="Batch" value={batch}
-                onChange={(e) => setBatch(e.target.value)}
+                placeholder="Batch"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Address</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
               />
             </Form.Group>
 
